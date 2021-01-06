@@ -1,7 +1,9 @@
-Dear ${PERSON_NAME}, 
+Subject: Test Email
 
-This is a test message. 
+Dear {PERSON_NAME}, 
+
+This is a test message, sent using python.
 Have a great weekend! 
 
-Yours Truly,
+Sincerely,
 Owen
