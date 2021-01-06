@@ -3,7 +3,5 @@ Subject: Test Email
 Dear {PERSON_NAME}, 
 
 This is a test message, sent using python.
-Have a great weekend! 
 
-Sincerely,
-Owen
+From Owen
