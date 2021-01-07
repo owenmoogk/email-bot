@@ -16,7 +16,7 @@ def read_template(filename):
     template_file_content = template_file.read()
     return (template_file_content)
 
-def sendEmail(name, email):
+def sendEmail():
     message = message_template.format(PERSON_NAME = name)
     s = smtplib.SMTP_SSL('smtp.gmail.com')
     s.login(sender, password)
@@ -31,7 +31,7 @@ names, emails = get_contacts('mycontacts.txt') # read contacts
 for i in range(0,len(names)):
     name = names[i]
     email = emails[i]
-    sendEmail(name, email)
+    sendEmail()
     print("Sent")
 
 print("Finished")
