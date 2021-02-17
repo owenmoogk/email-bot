@@ -15,7 +15,7 @@ def read_template(filename):
     template_file_content = template_file.read()
     return (template_file_content)
 
-def sendEmail():
+def sendEmail(message_template, sender, password, email):
     date = getDate()
     message = message_template.format(DATE = date)
     s = smtplib.SMTP_SSL('smtp.gmail.com')
@@ -31,16 +31,24 @@ def getDate():
     year = date.strftime("%Y")
     return(weekday+", "+month+" "+day+", "+year+" 7:43:39 AM")
 
+def main():
+    sender, password = credentials.getCredentials() # get my email credentials
+    message_template = read_template('message.txt') # read the message template
+    names, emails = get_contacts('mycontacts.txt') # read contacts
 
-sender, password = credentials.getCredentials() # get my email credentials
-message_template = read_template('message.txt') # read the message template
-names, emails = get_contacts('mycontacts.txt') # read contacts
+    # loop thru all
+    for i in range(0,len(names)):
+        # name = names[i]
+        email = emails[i]
+        sendEmail(message_template, sender, password, email)
+        print("Sent")
 
-# loop thru all
-for i in range(0,len(names)):
-    # name = names[i]
-    email = emails[i]
-    sendEmail()
-    print("Sent")
+    print("Finished")
 
-print("Finished")
+lastSentDate = datetime.datetime.now()
+while True:
+    currDate = datetime.datetime.now()
+    day = currDate.strftime("%d")
+    if day != lastSentDate:
+        main()
+        lastSentDate = 1
