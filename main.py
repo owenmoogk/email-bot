@@ -1,4 +1,6 @@
-import smtplib, credentials, datetime
+import smtplib, datetime, os
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_contacts(filename):
     names = []
@@ -32,7 +34,8 @@ def getDate():
     return(weekday+", "+month+" "+day+", "+year+" 7:43:39 AM")
 
 def main():
-    sender, password = credentials.getCredentials() # get my email credentials
+    sender = os.environ.get("SENDER")
+    password = os.environ.get("PASSWORD")
     message_template = read_template('message.txt') # read the message template
     names, emails = get_contacts('mycontacts.txt') # read contacts
 
@@ -43,7 +46,7 @@ def main():
         sendEmail(message_template, sender, password, email)
         print("Sent")
 
-    print("Finished")
+    print("Finished for the day")
 
 lastSentDate = datetime.datetime.now()
 while True:
@@ -51,4 +54,5 @@ while True:
     day = currDate.strftime("%d")
     if day != lastSentDate:
         main()
-        lastSentDate = 1
+        lastSentDate = day
+        
