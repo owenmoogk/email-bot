@@ -55,4 +55,3 @@ while True:
     if day != lastSentDate:
         main()
         lastSentDate = day
-        
