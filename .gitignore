@@ -1,0 +1,6 @@
+*.pyc
+node_modules/
+tokens/
+src/main/.env
+src/gmail/credentials.json
+src/db.sqlite3
