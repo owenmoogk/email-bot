@@ -20,78 +20,76 @@ from requests import Request, post
 from rest_framework import status
 from rest_framework.response import Response
 
+import json
+
 SCOPES = ['https://mail.google.com/']
 
 class Callback(APIView):
-    def get(self, request, format=None):
+    
+    def get(self, request):
 
-        user = request.user.username
-        tokenPath = 'gmail/tokens/'+user+'.json'
-
+        # once the user logs in, get the state left from the auth call
         state = request.session['state']
-        flow = InstalledAppFlow.from_client_secrets_file(
-            'gmail/credentials.json',
-            scopes=SCOPES,
-            state=state)
+
+        # create the client flow
+        flow = InstalledAppFlow.from_client_secrets_file('gmail/credentials.json', scopes=SCOPES, state=state)
         flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
 
         code = request.GET.get('code', '')
         state = request.GET.get('state', '')
         scope = request.GET.get('scope', '')
 
+        # this updates the flow.credentials with the new token
         flow.fetch_token(code=code, state=state, scope=scope)
 
-        with open(tokenPath, 'w') as token:
-            token.write(flow.credentials.to_json())
+        # load the credentials into the model with the associated user
+        GmailToken.objects.create(tokenData = flow.credentials.to_json(), user = request.user)
 
-        return Response({'status', 'poggers'}, status=status.HTTP_200_OK)
-
+        # TODO redirect this back to the homepage
+        return Response({'status', 'ok'}, status=status.HTTP_200_OK)
 
 
 class Authorize(APIView):
-    def get(self, request, format=None):
-        flow = InstalledAppFlow.from_client_secrets_file(
-            'gmail/credentials.json', scopes=SCOPES)
-        flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
-        authorization_url, state = flow.authorization_url(
-            access_type='offline',
-            include_granted_scopes='true')
-        request.session['state'] = state
-        return HttpResponseRedirect(authorization_url)
+    
+    def get(self, request):
+
+        # check if user is already authorized
+        creds = None
+        creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+
+        # if not authorized
+        if not creds or not creds.valid:
+
+            # if we can refresh then do so
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(GRequest())
+
+            # otherwise allow the user to sign in
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    'gmail/credentials.json', scopes=SCOPES)
+                flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
+                authorization_url, state = flow.authorization_url(
+                    access_type='offline',
+                    include_granted_scopes='true')
+                request.session['state'] = state
+                
+                # redirect to the google api for login and verification, will be passed back to the callback later
+                return HttpResponseRedirect(authorization_url)
+
+        # TODO return to the homepage
+
 
 class ExecuteGmailRequest(APIView):
 
-    def get(self, request, format=None):
+    def get(self, request):
 
-        user = request.user.username
+        # get the user credentials
+        # TODO check valid credentials and send to login
         creds = None
+        creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
 
-        tokenPath = 'gmail/tokens/'+user+'.json'
-        # get the token or make the token
-        if os.path.exists(tokenPath):
-            creds = Credentials.from_authorized_user_file(tokenPath, SCOPES)
-
-        # If there are no (valid) credentials available, let the user log in.
-        if not creds or not creds.valid:
-            if creds and creds.expired and creds.refresh_token:
-                creds.refresh(GRequest())
-            else:
-
-                # this prompts the user to login
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    'gmail/credentials.json', SCOPES)
-                flow.redirect_uri = 'http://127.0.0.1:8000/api/send/'
-                auth_url, state = flow.authorization_url(
-                    access_type='offline', include_granted_scopes='true')
-                creds = redirect(auth_url)
-
-            print('creds', creds)
-
-            # Save the credentials for the next run
-            with open(tokenPath, 'w') as token:
-                token.write(creds.to_json())
-
-        # send the email
+        # SEND THE EMAIL
         service = build('gmail', 'v1', credentials=creds)
 
         def create_message(sender, to, subject, message_text):
@@ -118,6 +116,8 @@ class ExecuteGmailRequest(APIView):
         message = create_message(
             'owenmoogk@gmail.com', 'moogo4920@wrdsb.ca', 'uwu test', 'hi this is a test thing')
 
+        # actually calling the function to send the email, 'me' is special :)
         send_message(service, 'me', message)
 
-        return Response({'status': "sent"}, status=status.HTTP_200_OK)
+        # response ok, this should be just called by javascript
+        return Response({'status': "ok"}, status=status.HTTP_200_OK)
