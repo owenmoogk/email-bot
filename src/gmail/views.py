@@ -55,7 +55,10 @@ class Authorize(APIView):
 
         # check if user is already authorized
         creds = None
-        creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+        try:
+            creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+        except:
+            pass
 
         # if not authorized
         if not creds or not creds.valid:
@@ -87,7 +90,10 @@ class ExecuteGmailRequest(APIView):
         # get the user credentials
         # TODO check valid credentials and send to login
         creds = None
-        creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+        try:
+            creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+        except:
+            return Response({'status': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # SEND THE EMAIL
         service = build('gmail', 'v1', credentials=creds)
