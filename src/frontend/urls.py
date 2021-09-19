@@ -1,8 +1,13 @@
-from django.urls import path
+from django.urls import include, path
 from .views import index
 
-app_name = 'frontend'
+accountUrls = [
+    path('login/', index),
+    path('logout/', index),
+    path('signup/', index)
+]
 
 urlpatterns = [
-    path('', index, name='')
+    path('accounts/', include(accountUrls)),
+    path('', index, name=''),
 ]
