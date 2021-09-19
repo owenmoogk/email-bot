@@ -1,13 +1,8 @@
-from requests.adapters import HTTPResponse
 from .models import GmailToken
-from django.utils import timezone
-from datetime import timedelta
-from requests import post, put, get
 
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 
-import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request as GRequest
@@ -16,7 +11,6 @@ from email.mime.text import MIMEText
 import base64
 
 from rest_framework.views import APIView
-from requests import Request, post
 from rest_framework import status
 from rest_framework.response import Response
 
@@ -80,7 +74,7 @@ class Authorize(APIView):
                 # redirect to the google api for login and verification, will be passed back to the callback later
                 return HttpResponseRedirect(authorization_url)
 
-        # TODO return to the homepage
+        return Response({}, status=status.HTTP_200_OK)
 
 
 class ExecuteGmailRequest(APIView):
@@ -120,7 +114,7 @@ class ExecuteGmailRequest(APIView):
                 return None
 
         message = create_message(
-            'owenmoogk@gmail.com', 'moogo4920@wrdsb.ca', 'uwu test', 'hi this is a test thing')
+            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test thingyyy')
 
         # actually calling the function to send the email, 'me' is special :)
         send_message(service, 'me', message)
