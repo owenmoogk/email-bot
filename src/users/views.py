@@ -32,4 +32,3 @@ class Signup(APIView):
         login(request, user)
 
         return Response({}, status=status.HTTP_200_OK)
-

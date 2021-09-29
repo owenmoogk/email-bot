@@ -1,14 +1,7 @@
-import React, { Component } from "react";
-import {
-  BrowserRouter as Router,
-  Switch,
-  Route,
-  Link,
-  Redirect,
-} from "react-router-dom";
+import React from "react";
 
 export default function HomePage(props) {
   return(
-    <p>owen moogk</p>
+    <p>homepage</p>
   )
 }
