@@ -4,3 +4,4 @@ tokens/
 src/main/.env
 src/gmail/credentials.json
 src/db.sqlite3
+src/frontend/static/
