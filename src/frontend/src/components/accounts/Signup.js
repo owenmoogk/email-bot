@@ -1,31 +1,31 @@
-import React, { useState } from 'react';
 import { Redirect } from 'react-router';
+import React, { useState } from 'react';
 
-export default function LoginForm(props) {
+export default function Signup(props) {
 
     const [username, setUsername] = useState()
     const [password, setPassword] = useState()
-    const [message, setMessage] = useState()
     const [redirect, setRedirect] = useState()
+    const [message, setMessage] = useState()
 
-    function handleLogin(e) {
+    function handleSignup(e) {
         e.preventDefault();
-        fetch('/token-auth/', {
+        fetch('/users/signup/', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ username: username, password: password })
+            body: JSON.stringify({ 'username': username, 'password': password })
         })
             .then(response => response.json())
             .then(json => {
                 if (json.token) {
                     localStorage.setItem('token', json.token);
                     props.setLoggedIn(true)
-                    props.setUsername(json.user.username)
+                    props.setUsername(json.username)
                     setRedirect(true)
                 }
-                else{
+                else {
                     setMessage(json[Object.keys(json)[0]])
                 }
             });
@@ -37,8 +37,8 @@ export default function LoginForm(props) {
                 <Redirect to='/' />
                 : null
             }
-            <form onSubmit={e => handleLogin(e)}>
-                <h4>Log In</h4>
+            <form onSubmit={e => handleSignup(e)}>
+                <h4>Sign Up</h4>
                 <label htmlFor="username">Username</label>
                 <input
                     type="text"
