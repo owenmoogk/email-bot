@@ -36,8 +36,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # mine
     'gmail',
     'frontend',
+    'users',
 
     # rest
     'rest_framework',

@@ -1,3 +1,4 @@
+from rest_framework import response
 from .models import GmailToken
 
 from django.http import HttpResponseRedirect
@@ -18,15 +19,17 @@ import json
 
 SCOPES = ['https://mail.google.com/']
 
+
 class Callback(APIView):
-    
+
     def get(self, request):
 
         # once the user logs in, get the state left from the auth call
         state = request.session['state']
 
         # create the client flow
-        flow = InstalledAppFlow.from_client_secrets_file('gmail/credentials.json', scopes=SCOPES, state=state)
+        flow = InstalledAppFlow.from_client_secrets_file(
+            'gmail/credentials.json', scopes=SCOPES, state=state)
         flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
 
         code = request.GET.get('code', '')
@@ -37,20 +40,22 @@ class Callback(APIView):
         flow.fetch_token(code=code, state=state, scope=scope)
 
         # load the credentials into the model with the associated user
-        GmailToken.objects.create(tokenData = flow.credentials.to_json(), user = request.user)
+        GmailToken.objects.create(
+            tokenData=flow.credentials.to_json(), user=request.user)
 
         # TODO redirect this back to the homepage
         return Response({'status', 'ok'}, status=status.HTTP_200_OK)
 
 
 class Authorize(APIView):
-    
+
     def get(self, request):
 
         # check if user is already authorized
         creds = None
         try:
-            creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+            creds = Credentials.from_authorized_user_info(json.loads(
+                GmailToken.objects.get(user=request.user).tokenData))
         except:
             pass
 
@@ -70,7 +75,7 @@ class Authorize(APIView):
                     access_type='offline',
                     include_granted_scopes='true')
                 request.session['state'] = state
-                
+
                 # redirect to the google api for login and verification, will be passed back to the callback later
                 return HttpResponseRedirect(authorization_url)
 
@@ -85,7 +90,8 @@ class ExecuteGmailRequest(APIView):
         # TODO check valid credentials and send to login
         creds = None
         try:
-            creds = Credentials.from_authorized_user_info(json.loads(GmailToken.objects.get(user = request.user).tokenData))
+            creds = Credentials.from_authorized_user_info(json.loads(
+                GmailToken.objects.get(user=request.user).tokenData))
         except:
             return Response({'status': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
