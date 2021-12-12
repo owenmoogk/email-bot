@@ -1,26 +1,35 @@
-from rest_framework import response
-from .models import GmailToken
+import datetime
+import base64
+import json
 
-from django.http import HttpResponseRedirect
-from django.shortcuts import redirect
+from .models import GmailToken
+from users.views import User
 
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request as GRequest
 from google.oauth2.credentials import Credentials
 from email.mime.text import MIMEText
-import base64
 
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 
-import json
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 SCOPES = ['https://mail.google.com/']
 
+scheduler = None
+def startScheduler():
+    global scheduler
+    scheduler = BackgroundScheduler()
+    scheduler.start()
 
 class Callback(APIView):
+
+    permission_classes = [AllowAny]
 
     def get(self, request):
 
@@ -33,15 +42,13 @@ class Callback(APIView):
         flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
 
         code = request.GET.get('code', '')
-        state = request.GET.get('state', '')
-        scope = request.GET.get('scope', '')
 
         # this updates the flow.credentials with the new token
-        flow.fetch_token(code=code, state=state, scope=scope)
+        flow.fetch_token(code=code)
 
         # load the credentials into the model with the associated user
-        GmailToken.objects.create(
-            tokenData=flow.credentials.to_json(), user=request.user)
+        print(state)
+        GmailToken.objects.create(tokenData=flow.credentials.to_json(), user = User.objects.get(username = state))
 
         # TODO redirect this back to the homepage
         return Response({'status', 'ok'}, status=status.HTTP_200_OK)
@@ -74,10 +81,10 @@ class Authorize(APIView):
                 authorization_url, state = flow.authorization_url(
                     access_type='offline',
                     include_granted_scopes='true')
-                request.session['state'] = state
+                request.session['state'] = request.user.username
 
                 # redirect to the google api for login and verification, will be passed back to the callback later
-                return HttpResponseRedirect(authorization_url)
+                return Response({'url':authorization_url}, status=status.HTTP_200_OK)
 
         return Response({}, status=status.HTTP_200_OK)
 
@@ -85,6 +92,8 @@ class Authorize(APIView):
 class ExecuteGmailRequest(APIView):
 
     def get(self, request):
+
+        print(request.user)
 
         # get the user credentials
         # TODO check valid credentials and send to login
@@ -120,10 +129,34 @@ class ExecuteGmailRequest(APIView):
                 return None
 
         message = create_message(
-            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test thingyyy')
+            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
 
         # actually calling the function to send the email, 'me' is special :)
         send_message(service, 'me', message)
 
         # response ok, this should be just called by javascript
         return Response({'status': "ok"}, status=status.HTTP_200_OK)
+
+
+
+def action(text):
+    print("testing here", text)
+
+
+
+class Schedule(APIView):
+
+    permission_classes = [AllowAny]
+
+
+    def get(self, request):
+
+        date = datetime.datetime.now()
+        change = datetime.timedelta(seconds = 10)
+        realTime = date + change
+        text = realTime
+        # IMPORTANT
+        # if we leave no run date, it will happen immediately, this is important if user wants no delay
+        scheduler.add_job(lambda: action(text), 'date', run_date=(realTime))
+        
+        return Response({}, status=status.HTTP_200_OK)
