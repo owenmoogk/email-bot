@@ -33,12 +33,11 @@ class Callback(APIView):
 
     def get(self, request):
 
-        # once the user logs in, get the state left from the auth call
-        state = request.session['state']
+        userId = request.query_params.get('state')
 
         # create the client flow
         flow = InstalledAppFlow.from_client_secrets_file(
-            'gmail/credentials.json', scopes=SCOPES, state=state)
+            'gmail/credentials.json', scopes=SCOPES)
         flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
 
         code = request.GET.get('code', '')
@@ -46,9 +45,7 @@ class Callback(APIView):
         # this updates the flow.credentials with the new token
         flow.fetch_token(code=code)
 
-        # load the credentials into the model with the associated user
-        print(state)
-        GmailToken.objects.create(tokenData=flow.credentials.to_json(), user = User.objects.get(username = state))
+        GmailToken.objects.create(tokenData=flow.credentials.to_json(), user = User.objects.get(id = userId))
 
         # TODO redirect this back to the homepage
         return Response({'status', 'ok'}, status=status.HTTP_200_OK)
@@ -80,8 +77,9 @@ class Authorize(APIView):
                 flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
                 authorization_url, state = flow.authorization_url(
                     access_type='offline',
+                    state= request.user.id,
+                    prompt = 'consent',
                     include_granted_scopes='true')
-                request.session['state'] = request.user.username
 
                 # redirect to the google api for login and verification, will be passed back to the callback later
                 return Response({'url':authorization_url}, status=status.HTTP_200_OK)
@@ -93,15 +91,13 @@ class ExecuteGmailRequest(APIView):
 
     def get(self, request):
 
-        print(request.user)
-
         # get the user credentials
         # TODO check valid credentials and send to login
         creds = None
         try:
             creds = Credentials.from_authorized_user_info(json.loads(
                 GmailToken.objects.get(user=request.user).tokenData))
-        except:
+        except Exception as e:
             return Response({'status': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # SEND THE EMAIL
@@ -128,8 +124,7 @@ class ExecuteGmailRequest(APIView):
                 print('An error occurred: %s' % e)
                 return None
 
-        message = create_message(
-            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
+        message = create_message('', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
 
         # actually calling the function to send the email, 'me' is special :)
         send_message(service, 'me', message)
@@ -147,7 +142,6 @@ def action(text):
 class Schedule(APIView):
 
     permission_classes = [AllowAny]
-
 
     def get(self, request):
 
