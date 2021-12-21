@@ -4,4 +4,4 @@ from django.contrib.auth.models import User
 # Create your models here.
 class GmailToken(models.Model):
     tokenData = models.JSONField(null=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
