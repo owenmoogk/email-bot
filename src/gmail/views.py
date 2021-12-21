@@ -1,4 +1,3 @@
-import datetime
 import base64
 import json
 
@@ -18,14 +17,19 @@ from rest_framework.permissions import AllowAny
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from django.shortcuts import redirect
+
 
 SCOPES = ['https://mail.google.com/']
 
 scheduler = None
+
+
 def startScheduler():
     global scheduler
     scheduler = BackgroundScheduler()
     scheduler.start()
+
 
 class Callback(APIView):
 
@@ -45,10 +49,12 @@ class Callback(APIView):
         # this updates the flow.credentials with the new token
         flow.fetch_token(code=code)
 
-        GmailToken.objects.create(tokenData=flow.credentials.to_json(), user = User.objects.get(id = userId))
+        GmailToken.objects.create(
+            tokenData=flow.credentials.to_json(), user=User.objects.get(id=userId))
 
-        # TODO redirect this back to the homepage
-        return Response({'status', 'ok'}, status=status.HTTP_200_OK)
+        # redirect to the compose
+        response = redirect('/compose')
+        return response
 
 
 class Authorize(APIView):
@@ -77,14 +83,30 @@ class Authorize(APIView):
                 flow.redirect_uri = "http://localhost:8000/api/oauth2callback"
                 authorization_url, state = flow.authorization_url(
                     access_type='offline',
-                    state= request.user.id,
-                    prompt = 'consent',
+                    state=request.user.id,
+                    prompt='consent',
                     include_granted_scopes='true')
 
                 # redirect to the google api for login and verification, will be passed back to the callback later
-                return Response({'url':authorization_url}, status=status.HTTP_200_OK)
+                return Response({'url': authorization_url}, status=status.HTTP_200_OK)
 
         return Response({}, status=status.HTTP_200_OK)
+
+
+class AccountInfo(APIView):
+
+    def get(self, request):
+        creds = None
+        try:
+            creds = Credentials.from_authorized_user_info(json.loads(
+                GmailToken.objects.get(user=request.user).tokenData))
+        except Exception as e:
+            return Response({'error': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
+        service = build('gmail', 'v1', credentials=creds)
+        emailAddress = service.users().getProfile(
+            userId='me').execute()['emailAddress']
+
+        return Response({'address': emailAddress}, status=status.HTTP_200_OK)
 
 
 class ExecuteGmailRequest(APIView):
@@ -118,13 +140,13 @@ class ExecuteGmailRequest(APIView):
             try:
                 message = service.users().messages().send(
                     userId=user_id, body=message).execute()
-                print('Message Id: %s' % message['id'])
                 return message
             except Exception as e:
                 print('An error occurred: %s' % e)
                 return None
 
-        message = create_message('', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
+        message = create_message(
+            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
 
         # actually calling the function to send the email, 'me' is special :)
         send_message(service, 'me', message)
@@ -133,10 +155,8 @@ class ExecuteGmailRequest(APIView):
         return Response({'status': "ok"}, status=status.HTTP_200_OK)
 
 
-
 def action(text):
     print("testing here", text)
-
 
 
 class Schedule(APIView):
@@ -145,12 +165,24 @@ class Schedule(APIView):
 
     def get(self, request):
 
-        date = datetime.datetime.now()
-        change = datetime.timedelta(seconds = 10)
-        realTime = date + change
-        text = realTime
-        # IMPORTANT
-        # if we leave no run date, it will happen immediately, this is important if user wants no delay
-        scheduler.add_job(lambda: action(text), 'date', run_date=(realTime))
-        
-        return Response({}, status=status.HTTP_200_OK)
+        # date = datetime.datetime.now()
+        # change = datetime.timedelta(seconds=10)
+        # realTime = date + change
+        # text = realTime
+        # # IMPORTANT
+        # # if we leave no run date, it will happen immediately, this is important if user wants no delay
+        # scheduler.add_job(lambda: action(text), 'date', run_date=(realTime))
+
+        # return Response({}, status=status.HTTP_200_OK)
+
+        import requests
+        creds = None
+        try:
+            creds = Credentials.from_authorized_user_info(json.loads(
+                GmailToken.objects.get(user=request.user).tokenData))
+        except Exception as e:
+            return Response({'status': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
+        r = requests.get(
+            'https://www.googleapis.com/oauth2/v1/userinfo?alt=json',
+            params={'access_token': creds})
+        return Response({'thing': r.json()}, status=status.HTTP_200_OK)
