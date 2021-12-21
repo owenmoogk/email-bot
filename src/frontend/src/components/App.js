@@ -1,12 +1,16 @@
-import React, { Component, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
 	BrowserRouter as Router,
-	Switch,
+	Routes,
 	Route,
+	Redirect
 } from "react-router-dom";
-import HomePage from "./HomePage";
+import Homepage from "./HomePage";
 import Login from "./accounts/Login";
 import Signup from './accounts/Signup';
+import Compose from "./Compose";
+import Nav from "./Nav";
+import '../index.css'
 
 export default function App(props) {
 
@@ -17,6 +21,7 @@ export default function App(props) {
 		localStorage.removeItem('token');
 		setLoggedIn(false)
 		setUsername('')
+		window.location.href = '/'
 	};
 
 	useEffect(() => {
@@ -38,24 +43,38 @@ export default function App(props) {
 		}
 	})
 
+	function loggedInRouter() {
+		return (
+			<Router>
+				<Routes>
+					<Route path='' element={<Homepage />} />
+					<Route path='/login' element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
+					<Route path='/signup' element={<Signup setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
+					<Route path='/compose' element={<Compose />} />
+				</Routes>
+			</Router>
+		)
+	}
+
+	function loggedOutRouter() {
+		return (
+			<Router>
+				<Routes>
+					<Route path='' element={<Homepage />} />
+					<Route path='/login' element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
+					<Route path='/signup' element={<Signup setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
+				</Routes>
+			</Router>
+		)
+	}
+
 	return (
 		<div>
-			<p className='title'>{username}</p>
-			<button onClick={handleLogout} style={{display: (loggedIn?'':'none')}}>Logout</button>
-			<Router>
-				<Switch>
-					<Route path='/login'>
-						<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />
-					</Route>
-					<Route path='/signup'>
-						<Signup setLoggedIn={setLoggedIn} setUsername={setUsername} />
-					</Route>
-					<Route path=''>
-						<HomePage />
-					</Route>
-				</Switch>
-
-			</Router>
+			<Nav loggedIn={loggedIn} handleLogout={handleLogout} username={username}/>
+			{loggedIn
+				? loggedInRouter()
+				: loggedOutRouter()
+			}
 		</div>
 	)
 }
