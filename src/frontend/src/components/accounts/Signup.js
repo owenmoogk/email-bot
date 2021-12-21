@@ -1,4 +1,4 @@
-import { Redirect } from 'react-router';
+import { Navigate } from 'react-router-dom';
 import React, { useState } from 'react';
 import { getCookie } from "../CSRF"
 
@@ -36,7 +36,7 @@ export default function Signup(props) {
     return (
         <>
             {redirect ?
-                <Redirect to='/' />
+                <Navigate to='/' />
                 : null
             }
             <form onSubmit={e => handleSignup(e)}>
