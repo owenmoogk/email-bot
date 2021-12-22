@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'gmail',
     'frontend',
     'users',
+    "userdata",
 
     # rest
     'rest_framework',
