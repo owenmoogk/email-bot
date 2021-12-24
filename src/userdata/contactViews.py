@@ -57,13 +57,13 @@ class GetContacts(APIView):
 
     def get(self, request):
 
-        Contacts = list(Contact.objects.filter(user = request.user))
+        contacts = list(Contact.objects.filter(user = request.user))
 
-        ContactInfos = []
-        for contact in Contacts:
-            ContactInfos.append((contact.info, contact.id))
+        contactInfos = []
+        for contact in contacts:
+            contactInfos.append({**contact.info, "id": contact.id})
             
-        return Response(ContactInfos, status=status.HTTP_200_OK)
+        return Response(contactInfos, status=status.HTTP_200_OK)
 
 
 class GetContact(APIView):

@@ -115,11 +115,9 @@ export default function Templates(props) {
 			<>
 				{templateData
 					? templateData.map((element, key) => {
-						var id = element[1]
-						var element = element[0]
 						return (
 							<>
-							<a href={'/templates/' + id} key={key}><b>{element.title}</b> -- {element.template}</a>
+							<a href={'/templates/' + element.id} key={key}><b>{element.title}</b> -- {element.template}</a>
 							<br/>
 							</>
 						)

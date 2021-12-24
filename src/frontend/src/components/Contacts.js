@@ -128,11 +128,9 @@ export default function Contacts(props) {
 			<>
 				{contactData
 					? contactData.map((element, key) => {
-						var id = element[1]
-						var element = element[0]
 						return (
 							<>
-								<a href={'/contacts/' + id} key={key}><b>{element.name}</b> -- {element.email}</a>
+								<a href={'/contacts/' + element.id} key={key}><b>{element.name}</b> -- {element.email}</a>
 								<br />
 							</>
 						)

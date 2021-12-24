@@ -36,7 +36,7 @@ class EditTemplate(APIView):
         else:
             return Response({"error": 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
-       
+
 class DeleteTemplate(APIView):
     
     def get(self, request, id):
@@ -59,11 +59,11 @@ class GetTemplates(APIView):
 
         templates = list(Template.objects.filter(user = request.user))
 
-        templateInfos = []
+        templateData = []
         for template in templates:
-            templateInfos.append((template.info, template.id))
+            templateData.append({**template.info, 'id': template.id}) 
             
-        return Response(templateInfos, status=status.HTTP_200_OK)
+        return Response(templateData, status=status.HTTP_200_OK)
 
 
 class GetTemplate(APIView):
