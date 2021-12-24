@@ -9,6 +9,7 @@ import Login from "./accounts/Login";
 import Signup from './accounts/Signup';
 import Compose from "./Compose";
 import Templates from "./Templates";
+import Contacts from './Contacts'
 import Nav from "./Nav";
 import '../index.css'
 
@@ -52,6 +53,7 @@ export default function App(props) {
 					<Route path='/signup' element={<Signup setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
 					<Route path='/compose' element={<Compose />} />
 					<Route path='/templates/*' element={<Templates />} />
+					<Route path='/contacts/*' element={<Contacts />} />
 				</Routes>
 			</Router>
 		)
