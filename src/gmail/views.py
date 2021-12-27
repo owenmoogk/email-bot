@@ -19,6 +19,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from django.shortcuts import redirect
 
+from userdata.models import Contact, Template
+
 
 SCOPES = ['https://mail.google.com/']
 
@@ -111,7 +113,19 @@ class AccountInfo(APIView):
 
 class ExecuteGmailRequest(APIView):
 
-    def get(self, request):
+    def post(self, request):
+
+        template = Template.objects.get(id=request.data['template'])
+        contactList = []
+        for contactId in request.data['contacts']:
+            contactList.append(Contact.objects.get(id=contactId))
+
+        # account check
+        if template.user != request.user:
+            return Response({'error': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
+        for contact in contactList:
+            if contact.user != request.user:
+                return Response({'error': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # get the user credentials
         # TODO check valid credentials and send to login
@@ -144,12 +158,47 @@ class ExecuteGmailRequest(APIView):
             except Exception as e:
                 print('An error occurred: %s' % e)
                 return None
+                
+        def getMessageContent(contact, template):
+            contactVars = contact.info['variables']
+            template = template.info['template']
 
-        message = create_message(
-            '', 'owenmoogk@gmail.com', 'uwu test', 'hi this is a test boom')
+            indexes = []
+            for i in range(0, len(template)):
+                if template[i] == '{':
+                    initial = i
+                    while template[i] != '}':
+                        i += 1
+                    final = i
+                    indexes.append((initial, final))
 
-        # actually calling the function to send the email, 'me' is special :)
-        send_message(service, 'me', message)
+            variables = []
+            for index in indexes:
+                variables.append(template[index[0]+1:index[1]])
+
+            for variable in variables:
+                for var in contactVars:
+                    if var['name'] == variable:
+                        template = template.replace("{"+variable+"}", var['value'])
+
+            return(template)
+
+        
+        for contact in contactList:
+            messageContent = getMessageContent(contact, template)
+            print(messageContent)
+            message = create_message(
+                # sender is already determined by the account
+                '', 
+                # who are we sending it to
+                contact.info['email'],
+                # subject line
+                'messageContent',
+                # message body
+                messageContent)
+
+            # actually calling the function to send the email, 'me' is special :)
+            send_message(service, 'me', message)
 
         # response ok, this should be just called by javascript
         return Response({'status': "ok"}, status=status.HTTP_200_OK)
