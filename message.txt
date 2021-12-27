@@ -1,3 +1,6 @@
-Subject: Student Self-Screening Verification
+Subject: Hello from the bot
 
-Thanks for filling out the Daily Screening Checklist. Your response had been recorded on {DATE} that you CAN attend school. Have a great in person learning day at school.
+Hi there {NAME}!
+Just reaching out.
+Let me know what you have been up to lately!
+Regards, Owen
