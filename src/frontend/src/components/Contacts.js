@@ -15,13 +15,18 @@ export default function Contacts(props) {
 
 		function saveContact() {
 
+			var tmpData = { ...data }
+			for (var variable of tmpData.variables) {
+				variable['name'] = variable['name'].toUpperCase()
+			}
+
 			fetch("/userdata/addcontact/", {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': `JWT ${localStorage.getItem('token')}`
 				},
-				body: JSON.stringify(data)
+				body: JSON.stringify(tmpData)
 			})
 				.then(response => {
 					if (response.status == 200) {
@@ -166,13 +171,18 @@ export default function Contacts(props) {
 
 		function saveContact(id) {
 
+			var tmpData = { ...data }
+			for (var variable of tmpData.variables) {
+				variable['name'] = variable['name'].toUpperCase()
+			}
+			
 			fetch("/userdata/contact/edit/" + id + '/', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': `JWT ${localStorage.getItem('token')}`
 				},
-				body: JSON.stringify(data)
+				body: JSON.stringify(tmpData)
 			})
 				.then(response => response.json())
 				.then(json => {
