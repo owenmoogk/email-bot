@@ -7,6 +7,7 @@ export default function Compose(props) {
 
   const [templateData, setTemplateData] = useState()
   const [contactData, setContactData] = useState()
+  const [completedContactData, setCompletedContactData] = useState()
 
   const [variablesNeeded, setVariablesNeeded] = useState()
   const [templateVars, setTemplateVars] = useState()
@@ -39,19 +40,57 @@ export default function Compose(props) {
       templateVariables[template.id] = variables
 
     }
-    setTemplateVars(templateVariables)
+    return (templateVariables)
   }
 
   function sendEmail() {
-    fetch("/api/send/", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `JWT ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({
-        contacts: [...selectedContacts],
-        template: selectedTemplate
+
+    // updating the user data
+    var requests = []
+    var tmpContactData = JSON.parse(JSON.stringify(completedContactData))
+    for (var contact of tmpContactData) {
+      
+      // checking to make sure all the variables are satisfied
+      var tmpVarsNeeded = new Set([...variablesNeeded])
+      for (var contactVariable of contact.variables){
+        if (contactVariable.value){
+          tmpVarsNeeded.delete(contactVariable.name)
+        }
+        else{
+          console.log('blank values')
+          return
+        }
+      }
+      console.log(tmpVarsNeeded.size)
+      if (tmpVarsNeeded.size != 0){
+        console.log('does not exist')
+        return
+      }
+
+      var id = contact.id
+      delete contact.id
+      requests.push(
+        fetch("/userdata/contact/edit/" + id + '/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `JWT ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(contact)
+        })
+      )
+    }
+    Promise.all(requests).then(() => {
+      fetch("/api/send/", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `JWT ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          contacts: [...selectedContacts],
+          template: selectedTemplate
+        })
       })
     })
   }
@@ -93,7 +132,7 @@ export default function Compose(props) {
       }
     })
       .then(response => response.json())
-      .then(json => { setTemplateData(json); setVariablesNeeded(getVariables(json)) })
+      .then(json => { setTemplateData(json); setTemplateVars(getVariables(json)) })
   }
 
   function getContacts() {
@@ -104,7 +143,7 @@ export default function Compose(props) {
       }
     })
       .then(response => response.json())
-      .then(json => setContactData(json))
+      .then(json => { setContactData(json); setCompletedContactData(json) })
   }
 
   useEffect(() => {
@@ -135,7 +174,7 @@ export default function Compose(props) {
           ? templateData.map((element, key) => {
             return (
               <>
-                <label for={element.title}><input type='radio' id={element.title} name='template' value={element.id} onChange={() => { setSelectedTemplate(element.id); setVariablesNeeded(templateVars[element.id]); console.log(templateVars[element.id]) }} />{element.title}</label>
+                <label for={element.title}><input type='radio' id={element.title} name='template' value={element.id} onChange={() => { setSelectedTemplate(element.id); setVariablesNeeded(templateVars[element.id]) }} />{element.title}</label>
                 <br />
               </>
             )
@@ -177,21 +216,55 @@ export default function Compose(props) {
 
       <p>Complete unfinished variables</p>
 
-      {selectedContacts && contactData && variablesNeeded
+      {selectedContacts && contactData && variablesNeeded && completedContactData
         ? [...selectedContacts].map((element) => {
+
           // element is just a id of the contact, we have to retrieve it
-          for (var contact of contactData) {
+          for (var i = 0; i < contactData.length; i++) {
+
+            // getting each contact from the list
+            var contact = contactData[i]
+
+            // if we have selected the current contact
             if (contact.id == parseInt(element)) {
               return (
+                // for each variable that is required
                 <p>{contact.name} -- Variables left: {[...variablesNeeded].map((variableNeeded) => {
-                  console.log(contact.name, contact.variables)
-                  // loop thru each variable and check if it contains it
-                  for (var variable of contact.variables){
-                    if (variable.name == variableNeeded){
+
+                  // check if contact contains this variable, if so return nothing
+                  for (var variable of contact.variables) {
+                    if (variable.name == variableNeeded) {
                       return
                     }
                   }
-                  return(<span>{variableNeeded}   </span>)
+
+                  // if it doesn't contain this variable, we return an input field for it
+                  return (
+                    <>
+                      <span>{variableNeeded} </span>
+                      <input placeholder={variableNeeded} className="variableInput" onChange={(e) => {
+
+                        // when the input field changes, we need to update the data, and eventually make a post request
+                        var tmpContactData = JSON.parse(JSON.stringify(completedContactData))
+
+                        // if this variable has already been updated, we need to change it once again
+                        for (var j = 0; j < tmpContactData[i].variables.length; j++) {
+                          var variable = tmpContactData[i].variables[j]
+                          if (variable.name == variableNeeded) {
+                            variable.value = e.target.value
+                            setCompletedContactData(tmpContactData)
+                            return
+                          }
+                        }
+                        // but if is not in there, we need to add it
+                        tmpContactData[i].variables.push({
+                          name: variableNeeded,
+                          value: e.target.value
+                        })
+                        setCompletedContactData(tmpContactData)
+                      }}></input>
+                    </>
+                  )
                 })}</p>
               )
             }
