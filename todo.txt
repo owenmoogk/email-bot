@@ -1,7 +1,7 @@
 add subject line
 
-add variable checking
-
 make sure email is valid
 
 maybe add a pfp for current user (pull from google)
+
+disallow blank variables
