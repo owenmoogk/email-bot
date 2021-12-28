@@ -12,9 +12,10 @@ export default function Templates(props) {
 	function formatTemplate() {
 		var title = document.getElementById('title').value
 		var text = document.getElementById('templateInput').value
+		var subject = document.getElementById('subjectInput').value
 
-		if (!(title && text)) {
-			console.log('stiooed')
+		if (!(title && text && subject)) {
+			console.log('stopped')
 			return
 		}
 
@@ -35,7 +36,7 @@ export default function Templates(props) {
 		for (variable of variables) {
 			text = text.replaceAll(variable, variable.toUpperCase())
 		}
-		return({title, text})
+		return ({ title, subject, text })
 	}
 
 	function setText(e) {
@@ -63,8 +64,8 @@ export default function Templates(props) {
 
 	function newTemplate() {
 
-		function saveTemplate(){
-			var {title, text} = formatTemplate()
+		function saveTemplate() {
+			var { title, text } = formatTemplate()
 			fetch("/userdata/addtemplate/", {
 				method: 'POST',
 				headers: {
@@ -81,8 +82,9 @@ export default function Templates(props) {
 
 		return (
 			<>
-
-				<input type="text" id='title'></input>
+				<input type="text" id='title' placeholder="Title"></input>
+				<br />
+				<input type='text' id='subjectInput' placeholder="Subject Line"></input>
 				<br />
 				<textarea id='templateInput' style={{
 					height: '200px',
@@ -117,8 +119,8 @@ export default function Templates(props) {
 					? templateData.map((element, key) => {
 						return (
 							<>
-							<a href={'/templates/' + element.id} key={key}><b>{element.title}</b> -- {element.template}</a>
-							<br/>
+								<a href={'/templates/' + element.id} key={key}><b>{element.title}</b> -- {element.template}</a>
+								<br />
 							</>
 						)
 					})
@@ -140,18 +142,19 @@ export default function Templates(props) {
 			})
 				.then(response => response.json())
 				.then(json => {
-					if (json.title && json.template){
+					if (json.title && json.template) {
 						document.getElementById('title').value = json.title;
 						document.getElementById('templateInput').value = json.template;
+						document.getElementById('subjectInput').value = json.subject
 					}
-					else{
+					else {
 						window.location.href = '/404'
 					}
 				})
 		}
 
-		function saveTemplate(id){
-			var {title, text} = formatTemplate()
+		function saveTemplate(id) {
+			var { title, subject, text } = formatTemplate()
 			fetch("/userdata/template/edit/" + id + "/", {
 				method: "POST",
 				headers: {
@@ -159,21 +162,21 @@ export default function Templates(props) {
 					'Authorization': `JWT ${localStorage.getItem('token')}`,
 					'X-CSRFToken': getCookie('csrftoken')
 				},
-				body: JSON.stringify({ "title": title, 'template': text })
+				body: JSON.stringify({ "title": title, 'subject': subject, 'template': text })
 			})
 				.then(response => response.json())
 				.then(json => console.log(json))
 		}
 
-		function deleteTemplate(id){
+		function deleteTemplate(id) {
 			fetch("/userdata/template/delete/" + id + "/", {
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': `JWT ${localStorage.getItem('token')}`
 				}
 			})
-			.then(response => response.json())
-			.then(json => window.location.href='/templates/')
+				.then(response => response.json())
+				.then(json => window.location.href = '/templates/')
 		}
 
 		var { id } = useParams();
@@ -184,7 +187,9 @@ export default function Templates(props) {
 
 		return (
 			<>
-				<input type="text" id='title'></input>
+				<input type="text" id='title' placeholder="Title"></input>
+				<br />
+				<input type='text' id='subjectInput' placeholder="Subject Line"></input>
 				<br />
 				<textarea id='templateInput' style={{
 					height: '200px',

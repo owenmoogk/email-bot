@@ -186,14 +186,14 @@ class ExecuteGmailRequest(APIView):
         
         for contact in contactList:
             messageContent = getMessageContent(contact, template)
-            print(messageContent)
+            subject = template.info['subject']
             message = create_message(
                 # sender is already determined by the account
                 '', 
                 # who are we sending it to
                 contact.info['email'],
                 # subject line
-                'messageContent',
+                subject,
                 # message body
                 messageContent)
 
