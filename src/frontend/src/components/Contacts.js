@@ -12,10 +12,30 @@ export default function Contacts(props) {
 	function NewContact() {
 
 		const [data, setData] = useState({ variables: [] })
+		const [errorMessage, setErrorMessage] = useState('')
 
 		function saveContact() {
 
 			var tmpData = { ...data }
+
+			const validateEmail = (email) => {
+				return email.match(
+					/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+				);
+			};
+
+			if (tmpData.email && tmpData.name){
+				if (!validateEmail(tmpData.email)){
+					setErrorMessage('Please enter a valid email address')
+					return
+				}
+			}
+			else{
+				setErrorMessage('Please fill in all fields.')
+				return
+			}
+
+
 			for (var variable of tmpData.variables) {
 				variable['name'] = variable['name'].toUpperCase()
 			}
@@ -108,6 +128,7 @@ export default function Contacts(props) {
 				</div>
 
 				<br />
+				{errorMessage}
 				<br />
 				<button onClick={() => saveContact()}>Save Contact</button>
 			</>
@@ -175,7 +196,7 @@ export default function Contacts(props) {
 			for (var variable of tmpData.variables) {
 				variable['name'] = variable['name'].toUpperCase()
 			}
-			
+
 			fetch("/userdata/contact/edit/" + id + '/', {
 				method: 'POST',
 				headers: {
