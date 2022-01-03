@@ -61,7 +61,6 @@ export default function Compose(props) {
           return
         }
       }
-      console.log(tmpVarsNeeded.size)
       if (tmpVarsNeeded.size != 0){
         console.log('does not exist')
         return
@@ -81,7 +80,7 @@ export default function Compose(props) {
       )
     }
     Promise.all(requests).then(() => {
-      fetch("/api/send/", {
+      fetch("/api/schedule/", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
@@ -89,7 +88,8 @@ export default function Compose(props) {
         },
         body: JSON.stringify({
           contacts: [...selectedContacts],
-          template: selectedTemplate
+          template: selectedTemplate,
+          time: document.getElementById('sendTime').value
         })
       })
     })
@@ -212,7 +212,7 @@ export default function Compose(props) {
         }
       </div>
 
-      <h3>Step 3</h3>
+      <h2>Step 3</h2>
 
       <p>Complete unfinished variables</p>
 
@@ -273,6 +273,8 @@ export default function Compose(props) {
         : null
       }
 
+      <input type="datetime-local" id="sendTime" defaultValue="2022-01-01T12:00"></input>
+      <br/>
       <button onClick={() => sendEmail()}>Send Email</button>
     </>
   )
