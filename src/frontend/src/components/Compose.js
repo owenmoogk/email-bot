@@ -49,21 +49,25 @@ export default function Compose(props) {
     var requests = []
     var tmpContactData = JSON.parse(JSON.stringify(completedContactData))
     for (var contact of tmpContactData) {
-      
-      // checking to make sure all the variables are satisfied
-      var tmpVarsNeeded = new Set([...variablesNeeded])
-      for (var contactVariable of contact.variables){
-        if (contactVariable.value){
-          tmpVarsNeeded.delete(contactVariable.name)
+
+      // if the contact is selected
+      if (selectedContacts.has(contact.id)) {
+
+        // checking to make sure all the variables are satisfied
+        var tmpVarsNeeded = new Set([...variablesNeeded])
+        for (var contactVariable of contact.variables) {
+          if (contactVariable.value) {
+            tmpVarsNeeded.delete(contactVariable.name)
+          }
+          else {
+            console.log('blank values')
+            return
+          }
         }
-        else{
-          console.log('blank values')
+        if (tmpVarsNeeded.size != 0) {
+          console.log('does not exist')
           return
         }
-      }
-      if (tmpVarsNeeded.size != 0){
-        console.log('does not exist')
-        return
       }
 
       var id = contact.id
@@ -89,7 +93,7 @@ export default function Compose(props) {
         body: JSON.stringify({
           contacts: [...selectedContacts],
           template: selectedTemplate,
-          time: document.getElementById('sendTime').value
+          time: document.getElementById('sendTime').disabled ? null : document.getElementById('sendTime').value
         })
       })
     })
@@ -153,7 +157,7 @@ export default function Compose(props) {
   }, [])
 
   return (
-    <>
+    <div id="compose">
       <h1>Compose</h1>
 
       {email
@@ -169,7 +173,7 @@ export default function Compose(props) {
 
       <p>Choose a template</p>
 
-      <div id="templates">
+      <div id="templates" className="card">
         {templateData
           ? templateData.map((element, key) => {
             return (
@@ -187,7 +191,7 @@ export default function Compose(props) {
 
       <p>Select Contacts</p>
 
-      <div id='contacts'>
+      <div id='contacts' className="card">
         {contactData
           ? contactData.map((element, key) => {
             return (
@@ -212,8 +216,6 @@ export default function Compose(props) {
         }
       </div>
 
-      <h2>Step 3</h2>
-
       <p>Complete unfinished variables</p>
 
       {selectedContacts && contactData && variablesNeeded && completedContactData
@@ -227,55 +229,81 @@ export default function Compose(props) {
 
             // if we have selected the current contact
             if (contact.id == parseInt(element)) {
-              return (
-                // for each variable that is required
-                <p>{contact.name} -- Variables left: {[...variablesNeeded].map((variableNeeded) => {
 
-                  // check if contact contains this variable, if so return nothing
-                  for (var variable of contact.variables) {
-                    if (variable.name == variableNeeded) {
-                      return
-                    }
+              // this bit here is checking if ALL the variables are met, if so we do not need to show the 'variables left' text
+              for (var variableNeeded of [...variablesNeeded]) {
+                var variableMatched = false
+                for (var variable of contact.variables) {
+                  if (variable.name == variableNeeded) {
+                    variableMatched = true
+                    break
                   }
+                }
 
-                  // if it doesn't contain this variable, we return an input field for it
+                // if this contact is missing at least one variable, then we need to render this, and allow the user to fix it
+                if (!variableMatched) {
                   return (
-                    <>
-                      <span>{variableNeeded} </span>
-                      <input placeholder={variableNeeded} className="variableInput" onChange={(e) => {
+                    // for each variable that is required
+                    <p>{contact.name} -- Variables left: {[...variablesNeeded].map((variableNeeded) => {
 
-                        // when the input field changes, we need to update the data, and eventually make a post request
-                        var tmpContactData = JSON.parse(JSON.stringify(completedContactData))
-
-                        // if this variable has already been updated, we need to change it once again
-                        for (var j = 0; j < tmpContactData[i].variables.length; j++) {
-                          var variable = tmpContactData[i].variables[j]
-                          if (variable.name == variableNeeded) {
-                            variable.value = e.target.value
-                            setCompletedContactData(tmpContactData)
-                            return
-                          }
+                      // check if contact contains this variable, if so return nothing
+                      for (var variable of contact.variables) {
+                        if (variable.name == variableNeeded) {
+                          return
                         }
-                        // but if is not in there, we need to add it
-                        tmpContactData[i].variables.push({
-                          name: variableNeeded,
-                          value: e.target.value
-                        })
-                        setCompletedContactData(tmpContactData)
-                      }}></input>
-                    </>
+                      }
+
+                      // if it doesn't contain this variable, we return an input field for it
+                      return (
+                        <>
+                          <span>{variableNeeded} </span>
+                          <input placeholder={variableNeeded} className="variableInput" onChange={(e) => {
+
+                            // when the input field changes, we need to update the data, and eventually make a post request
+                            var tmpContactData = JSON.parse(JSON.stringify(completedContactData))
+
+                            // if this variable has already been updated, we need to change it once again
+                            for (var j = 0; j < tmpContactData[i].variables.length; j++) {
+                              var variable = tmpContactData[i].variables[j]
+                              if (variable.name == variableNeeded) {
+                                variable.value = e.target.value
+                                setCompletedContactData(tmpContactData)
+                                return
+                              }
+                            }
+                            // but if is not in there, we need to add it
+                            tmpContactData[i].variables.push({
+                              name: variableNeeded,
+                              value: e.target.value
+                            })
+                            setCompletedContactData(tmpContactData)
+                          }}></input>
+                        </>
+                      )
+                    })}</p>
                   )
-                })}</p>
-              )
+                }
+              }
+
+
             }
           }
         })
         : null
       }
 
-      <input type="datetime-local" id="sendTime" defaultValue="2022-01-01T12:00"></input>
-      <br/>
+      <h2>Step 3</h2>
+      <label><input type='checkbox' onChange={(e) => {
+        if (e.target.checked) {
+          document.getElementById('sendTime').disabled = false
+        }
+        else {
+          document.getElementById('sendTime').disabled = true
+        }
+      }}></input> Schedule Email</label>
+      <input type="datetime-local" id="sendTime" disabled defaultValue={new Date().toISOString().slice(0, -14)+'T12:00'} min={new Date().toISOString().slice(0, -8)}></input>
+      <br />
       <button onClick={() => sendEmail()}>Send Email</button>
-    </>
+    </div>
   )
 }

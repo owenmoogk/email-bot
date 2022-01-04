@@ -2,9 +2,6 @@ import base64
 import datetime
 import json
 
-from .models import GmailToken
-from users.views import User
-
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request as GRequest
@@ -20,6 +17,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from django.shortcuts import redirect
 
+from .models import GmailToken
+from users.views import User
 from userdata.models import Contact, Template
 
 
@@ -207,8 +206,10 @@ class Schedule(APIView):
         except Exception as e:
             return Response({'status': 'unauth'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # TODO update the date
-        sendDate = datetime.datetime.strptime(request.data['time'], "%Y-%m-%dT%H:%M")
+        if request.data['time']:
+            sendDate = datetime.datetime.strptime(request.data['time'], "%Y-%m-%dT%H:%M")
+        else:
+            sendDate = None
 
         # adding the job
         # IMPORTANT

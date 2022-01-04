@@ -4,7 +4,7 @@ import {
 	Routes,
 	Route
 } from "react-router-dom";
-import Homepage from "./HomePage";
+import Homepage from "./Homepage";
 import Login from "./accounts/Login";
 import Signup from './accounts/Signup';
 import Compose from "./Compose";
@@ -48,7 +48,7 @@ export default function App(props) {
 		return (
 			<Router>
 				<Routes>
-					<Route path='' element={<Homepage />} />
+					<Route path='' element={<Homepage loggedIn={loggedIn} />} />
 					<Route path='/login' element={<Login setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
 					<Route path='/signup' element={<Signup setLoggedIn={setLoggedIn} setUsername={setUsername} />} />
 					<Route path='/compose' element={<Compose />} />

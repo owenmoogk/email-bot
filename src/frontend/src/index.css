@@ -1,5 +1,6 @@
 @import url("css/nav.css");
-
+@import url('css/home.css');
+@import url('css/compose.css');
 
 *{
     font-family: 'Nunito', sans-serif;
