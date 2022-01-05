@@ -82,9 +82,9 @@ export default function Templates(props) {
 
 		return (
 			<>
-				<input type="text" id='title' placeholder="Title"></input>
+				Title: <input type="text" id='title' placeholder="Title"></input>
 				<br />
-				<input type='text' id='subjectInput' placeholder="Subject Line"></input>
+				Subject: <input type='text' id='subjectInput' placeholder="Subject Line"></input>
 				<br />
 				<textarea id='templateInput' style={{
 					height: '200px',
@@ -114,20 +114,17 @@ export default function Templates(props) {
 		}, [])
 
 		return (
-			<>
+			<div id='contactsPage' className="card">
 				{templateData
 					? templateData.map((element, key) => {
 						return (
-							<>
-								<a href={'/templates/' + element.id} key={key}><b>{element.title}</b> -- {element.template}</a>
-								<br />
-							</>
+							<a href={'/templates/' + element.id} key={key}><b>{element.title}</b> -- {element.template.substring(0, 20)+'...'}</a>
 						)
 					})
 					: null
 				}
 				<button onClick={() => window.location.href = '/templates/add'}>Add template</button>
-			</>
+			</div>
 		)
 	}
 
@@ -187,9 +184,9 @@ export default function Templates(props) {
 
 		return (
 			<>
-				<input type="text" id='title' placeholder="Title"></input>
+				Title: <input type="text" id='title' placeholder="Title"></input>
 				<br />
-				<input type='text' id='subjectInput' placeholder="Subject Line"></input>
+				Subject: <input type='text' id='subjectInput' placeholder="Subject Line"></input>
 				<br />
 				<textarea id='templateInput' style={{
 					height: '200px',
@@ -205,13 +202,13 @@ export default function Templates(props) {
 	}
 
 	return (
-		<>
+		<div id='contactsWrapper'>
 			<h1>Templates</h1>
 			<Routes>
 				<Route exact path='' element={<Templates />} />
 				<Route exact path='add' element={newTemplate()} />
 				<Route path=':id' element={<EditTemplate />} />
 			</Routes>
-		</>
+		</div>
 	)
 }

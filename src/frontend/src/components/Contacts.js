@@ -24,13 +24,13 @@ export default function Contacts(props) {
 				);
 			};
 
-			if (tmpData.email && tmpData.name){
-				if (!validateEmail(tmpData.email)){
+			if (tmpData.email && tmpData.name) {
+				if (!validateEmail(tmpData.email)) {
 					setErrorMessage('Please enter a valid email address')
 					return
 				}
 			}
-			else{
+			else {
 				setErrorMessage('Please fill in all fields.')
 				return
 			}
@@ -122,8 +122,8 @@ export default function Contacts(props) {
 					<br />
 					Variables
 					<br />
-					<input type="text" id='varNameInput' placeholder="Name"></input>
-					<input type="text" id='varValueInput' placeholder="Value"></input>
+					Name: <input type="text" id='varNameInput' placeholder="Name"></input>
+					Value: <input type="text" id='varValueInput' placeholder="Value"></input>
 					<button onClick={() => addVariable()}>Add variable</button>
 				</div>
 
@@ -151,20 +151,17 @@ export default function Contacts(props) {
 		}, [])
 
 		return (
-			<>
+			<div id='contactsPage' className="card">
 				{contactData
 					? contactData.map((element, key) => {
 						return (
-							<>
-								<a href={'/contacts/' + element.id} key={key}><b>{element.name}</b> -- {element.email}</a>
-								<br />
-							</>
+							<a href={'/contacts/' + element.id} key={key}><b>{element.name}</b> -- {element.email}</a>
 						)
 					})
 					: null
 				}
 				<button onClick={() => window.location.href = '/contacts/add'}>Add Contact</button>
-			</>
+			</div>
 		)
 	}
 
@@ -252,9 +249,8 @@ export default function Contacts(props) {
 				{data
 					?
 					<>
-						<input type="text" id='nameInput' value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })}></input>
-						<br />
-						<input type="text" id='emailInput' value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })}></input>
+						Name: <input type="text" id='nameInput' value={data.name} onChange={(e) => setData({ ...data, name: e.target.value })}></input>
+						Email: <input type="text" id='emailInput' value={data.email} onChange={(e) => setData({ ...data, email: e.target.value })}></input>
 						<br />
 						<br />
 
@@ -299,8 +295,8 @@ export default function Contacts(props) {
 					<br />
 					Variables
 					<br />
-					<input type="text" id='varNameInput' placeholder="Name"></input>
-					<input type="text" id='varValueInput' placeholder="Value"></input>
+					Name: <input type="text" id='varNameInput' placeholder="Name"></input>
+					Value: <input type="text" id='varValueInput' placeholder="Value"></input>
 					<button onClick={() => addVariable()}>Add variable</button>
 				</div>
 
@@ -313,13 +309,13 @@ export default function Contacts(props) {
 	}
 
 	return (
-		<>
+		<div id='contactsWrapper'>
 			<h1>Contacts</h1>
 			<Routes>
 				<Route exact path='' element={<Contacts />} />
 				<Route exact path='add' element={<NewContact />} />
 				<Route path=':id' element={<EditContact />} />
 			</Routes>
-		</>
+		</div>
 	)
 }
