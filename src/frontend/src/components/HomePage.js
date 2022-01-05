@@ -47,10 +47,23 @@ export default function Homepage(props) {
       <p>Send emails to the masses, with just a click of a button. Including support for contacts, placeholders, scheduling, and much more.</p>
 
       {email
-      ? <div className="card">{email}</div>
-      : null
+        ? <div className="card">{email}</div>
+        : null
       }
-      
+
+      {!props.loggedIn
+        ? <div className="card" style={{
+          width: "fit-content",
+          padding: "20px" 
+        }}>
+          <button onClick={() => window.location.href = '/login'}>Login</button>
+          <br/>
+          <br/>
+          <button onClick={() => window.location.href = '/signup'}>Sign Up</button>
+        </div>
+        : null
+      }
+
     </div>
   )
 }
