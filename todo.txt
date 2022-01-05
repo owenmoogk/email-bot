@@ -1,5 +1,1 @@
-make sure email is valid
-
 disallow blank variables
-
-css lmao
