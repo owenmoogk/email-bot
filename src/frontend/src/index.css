@@ -1,7 +1,28 @@
 @import url("css/nav.css");
 @import url('css/home.css');
 @import url('css/compose.css');
+@import url('css/contacts.css');
 
 *{
     font-family: 'Nunito', sans-serif;
+}
+
+.card{
+    background-color: white;
+    width: 500px;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px black;
+    color: black;
+}
+
+input[type='text'], textarea, input[type='password']{
+    background-color: white;
+    color: black;
+    outline: none;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px black;
+    margin: 10px;
 }
