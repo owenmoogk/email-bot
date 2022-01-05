@@ -2,6 +2,7 @@
 @import url('css/home.css');
 @import url('css/compose.css');
 @import url('css/contacts.css');
+@import url('css/login.css');
 
 *{
     font-family: 'Nunito', sans-serif;

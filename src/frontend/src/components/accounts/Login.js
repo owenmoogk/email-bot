@@ -32,7 +32,7 @@ export default function LoginForm(props) {
     };
 
     return (
-        <>
+        <div className='loginPage'>
             {redirect ?
                 <Navigate to='/' />
                 : null
@@ -56,6 +56,6 @@ export default function LoginForm(props) {
                 <input type="submit" />
             </form>
             <p>{message}</p>
-        </>
+        </div>
     );
 }
