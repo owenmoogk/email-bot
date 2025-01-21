@@ -1,0 +1,8 @@
+django
+environ
+djangorestframework
+djangorestframework-jwt
+django-cors-headers
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
