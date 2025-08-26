@@ -1,9 +1,8 @@
 *.pyc
 node_modules/
 tokens/
-src/main/.env
-src/gmail/credentials.json
-src/db.sqlite3
-src/frontend/static/
+.env
+credentials.json
+db.sqlite3
 css/
 .venv
