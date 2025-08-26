@@ -1,8 +1,9 @@
 django
 environ
 djangorestframework
-djangorestframework-jwt
+djangorestframework-simplejwt
 django-cors-headers
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+apscheduler
